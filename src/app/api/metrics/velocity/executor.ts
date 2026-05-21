@@ -99,14 +99,9 @@ async function runExecutionLoop() {
     }
 
     if (!isValidSupabaseConfig() || !supabase) {
-      logConsole("Supabase not configured — skipping execution cycle.");
+      logConsole("[MOCK MODE] Supabase not configured — using in-memory ledger.");
       isExecuting = true;
-      isExecuting = false;
-      return;
-    }
-
-    isExecuting = true;
-    try {
+      try {
       logConsole("Fetching latest 24h token velocity metrics...");
       const metrics = await fetchLiveMetrics();
 
