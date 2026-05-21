@@ -23,8 +23,8 @@ export default function LedgerView() {
         const json = await res.json();
         if (!json.success) throw new Error(json.error || 'Failed to load ledger');
         setLedger(json.data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load ledger');
       } finally {
         setLoading(false);
       }

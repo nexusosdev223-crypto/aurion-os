@@ -3,10 +3,10 @@
 import { useState } from 'react';
 
 interface TransactionConsoleProps {
-  onCcess?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function TransactionConsole({ onCcess }: TransactionConsoleProps) {
+export default function TransactionConsole({ onSuccess }: TransactionConsoleProps) {
   const [orderType, setOrderType] = useState('BUY');
   const [amount, setAmount] = useState('1000');
   const [logMessage, setLogMessage] = useState('Manual operator liquidity allocation.');
@@ -32,7 +32,7 @@ export default function TransactionConsole({ onCcess }: TransactionConsoleProps)
       const data = await res.json();
       if (data.success) {
         setSuccess(true);
-        if (onCcess) onCcess();
+        if (onSuccess) onSuccess();
       }
     } catch (err) {
       console.error("Failed to direct transfer", err);

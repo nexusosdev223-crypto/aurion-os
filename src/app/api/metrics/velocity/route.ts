@@ -13,7 +13,7 @@ export async function GET() {
         healthIndex: velocityData.healthIndex === 'STABLE' ? 'Optimal Activity' : velocityData.healthIndex
       }
     });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+   } catch (error: unknown) {
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Internal error' }, { status: 500 });
   }
 }

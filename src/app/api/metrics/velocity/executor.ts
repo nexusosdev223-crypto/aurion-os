@@ -1,4 +1,5 @@
 import { supabase } from '../../../../lib/supabase';
+import { enforceComplianceGate, auditGateDecision, MAX_DRAWDOWN } from '../../../../lib/compliance_gate';
 
 interface VelocityMetrics {
   circulatingSupply: number;
@@ -39,11 +40,7 @@ async function askOllama(metrics: VelocityMetrics): Promise<string> {
 
 async function runExecutionLoop() {
   const TIMER_INTERVAL = 60000;
-  const modelId = 'qwen2.5-coder:7b';
-  
-  const logConsole = (msg: string) => console.log(`[AUFION-EYECUTOR] [${new Date().toISOString()}] ${msg}`);
-  logConsole('Initializing autonomous execution loop...');
-
+  const logConsole = (msg: string) => console.log(`[AURION-EXECUTOR] [${new Date().toISOString()}] ${msg}`);
   setInterval(async () => {
     try {
       logConsole('Fetching latest 24h token velocity metrics...');
@@ -55,26 +52,47 @@ async function runExecutionLoop() {
       logConsole(`Ollama responded: ${agentDecision}`);
       logConsole('Logging agent decision to Supabase (aurion_ledger)...');
 
-      const orderType = agentDecision.includes('[iBALANCE_MARKET]') ? 'BUY' : 'HOLD';
-      const amount = orderType === 'BUY' ? 5000 : 0;
+      const orderType   = agentDecision.includes('[BALANCE_MARKET]') ? 'BUY' : 'HOLD';
+      const amount      = orderType === 'BUY' ? 5000 : 0;
+      const marketCap   = 10_000_000;
+      const intent      = `[AURION] ${orderType} — ${amount > 0 ? 'Inject liquidity' : 'Maintain position'} per agent analysis`;
+
+      // ── COMPLIANCE GATE ────────────────────────────────────────────────────
+      const gateOk = await enforceComplianceGate();
+      if (!gateOk && orderType === 'BUY') {
+        // Gate refused — log blocked intent, do NOT execute
+        const snapshot = await (await import('../../../../lib/compliance_gate')).getEconomicSnapshot();
+        await auditGateDecision({
+          orderType:    orderType,
+          amount:       0,
+          marketCap,
+          agentLog:     `[BLOCKED ${agentDecision}] Compliance gate refused — drawdown exceeds ${(MAX_DRAWDOWN * 100).toFixed(0)}% limit.`,
+          intent,
+          drawdownPct: snapshot.drawdownPct,
+          gatePassed:   false,
+          executionResult: 'BLOCKED',
+        });
+        logConsole('Trade BLOCKED by compliance gate.');
+        return;
+      }
 
       const { error } = await supabase
         .from('aurion_ledger')
         .insert([
           {
             order_type: orderType,
-            amount: amount,
-            market_cap: 10000000,
-            agent_log: `[ASOC] Execution Loop: ${agentDecision}`
+            amount:     amount,
+            market_cap: marketCap,
+            agent_log:  `[AURION] Execution Loop: ${agentDecision}`,
+            intent,
           }
         ]);
 
       if (error) throw error;
       logConsole('Successfully logged decision to ledger.');
-    } catch (error: any) {
-      const errMsg = error.message || error;
-      const logError = (e) => constle.error(`[AURION-ERROR] Failed in running execution loop: ${e}`);
-      logError(errMsg);
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[AURION-ERROR] Failed in running execution loop: ${errMsg}`);
     }
   }, TIMER_INTERVAL);
 }

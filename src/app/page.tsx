@@ -4,8 +4,15 @@ import { useEffect, useState } from 'react';
 import LedgerView from '@/components/LedgerView';
 import TransactionConsole from '@/components/TransactionConsole';
 
+interface Metrics {
+  circulatingSupply: number;
+  volume24h: number;
+  tokenVelocity24h: number;
+  healthIndex: string;
+}
+
 export default function Home() {
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -108,7 +115,7 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <TransactionConsole onCcess={handleGlobalRefresh} />
+          <TransactionConsole onSuccess={handleGlobalRefresh} />
         </div>
       </section>
     </main>

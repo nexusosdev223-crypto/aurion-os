@@ -14,9 +14,9 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true, data });
-  } catch (err: any) {
-    console.error('Ledger API internal error:', err.message);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+   } catch (err: unknown) {
+    console.error('Ledger API internal error:', err instanceof Error ? err.message : String(err));
+    return NextResponse.json({ success: false, error: err instanceof Error ? err.message : 'Internal error' }, { status: 500 });
   }
 }
 export const dynamic = 'force-dynamic';
