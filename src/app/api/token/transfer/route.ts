@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase, isValidSupabaseConfig } from '@/lib/supabase';
 import { enforceComplianceGate, auditGateDecision, MAX_DRAWDOWN } from '@/lib/compliance_gate';
+import { logCommission } from '@/lib/commissions';
 
 export async function POST(request: Request) {
   try {
@@ -28,13 +29,20 @@ export async function POST(request: Request) {
         id: 0,
       };
       if (!gateOk) {
-        await auditGateDecision({
-          orderType, amount: 0, marketCap: marketCap ?? 10_000_000,
+        auditGateDecision({
+          orderType, amount: amount ?? 0, marketCap: marketCap ?? 10_000_000,
           agentLog: `[MOCK BLOCKED] Compliance gate refused — drawdown exceeds MAX_DRAWDOWN.`,
           intent: `[MOCK] ${orderType}`, drawdownPct: 0, gatePassed: false, executionResult: "BLOCKED", byHuman: true,
         });
         return NextResponse.json({ success: false, error: 'Compliance gate refused (mock mode).', transaction: mockTx }, { status: 402 });
       }
+
+      // ── MONETISATION: log commission even in mock mode ──────────────────────
+      await logCommission({
+        orderType: mockTx.order_type,
+        volume: mockTx.amount,
+        agentDecision: `[MOCK EXECUTED] ${logMessage ?? 'Compliance-gate passed transaction.'}`,
+      });
       await auditGateDecision({
         orderType, amount: amount ?? 0, marketCap: marketCap ?? 10_000_000,
         agentLog: `[MOCK] Transaction executed in mock mode.`, intent: `[MOCK] ${orderType}`,
@@ -81,9 +89,9 @@ export async function POST(request: Request) {
         ])
         .select();
 
-      if (error) throw error;
+    if (error) throw error;
 
-      await auditGateDecision({
+    await auditGateDecision({
         orderType:      orderType || 'INTENT',
         amount:         typeof amount === 'number' ? amount : 0,
         marketCap:      marketCap || 10_000_000,
@@ -110,6 +118,13 @@ export async function POST(request: Request) {
       .select();
 
     if (error) throw error;
+
+    // ── MONETISATION: log 1% commission on every real trade ───────────────────
+    await logCommission({
+      orderType,
+      volume: amount,
+      agentDecision: logMessage ?? `Operator executed ${orderType} — ${amount} AURION.`,
+    });
 
     await auditGateDecision({
       orderType:      orderType,

@@ -1,0 +1,7 @@
+project_id = "fmqxrspopdvewgcyvsdn"
+
+[auth]
+service_role_key = "REPLACE_WITH_REAL_SERVICE_ROLE_KEY"
+
+[db]
+port = 54322

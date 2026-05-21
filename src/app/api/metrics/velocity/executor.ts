@@ -98,10 +98,93 @@ async function runExecutionLoop() {
       return;
     }
 
+    // ── MOCK MODE ────────────────────────────────────────────────────────────
     if (!isValidSupabaseConfig() || !supabase) {
       logConsole("[MOCK MODE] Supabase not configured — using in-memory ledger.");
       isExecuting = true;
       try {
+        logConsole("Fetching latest 24h token velocity metrics...");
+        const metrics = await fetchLiveMetrics();
+
+        logConsole(
+          `Metrics loaded. Velocity: ${metrics.tokenVelocity24h}, Health: ${metrics.healthIndex}.` +
+            " Sending to Ollama...",
+        );
+        const agentDecision = await askOllama(metrics);
+
+        logConsole(`Ollama responded: ${agentDecision}`);
+        logConsole(
+          supabase && isValidSupabaseConfig()
+            ? "Logging agent decision to Supabase (aurion_ledger)..."
+            : "[MOCK] Not writing to ledger — Supabase not configured."
+        );
+
+        const orderType = agentDecision.includes("[BALANCE_MARKET]")
+          ? "BUY"
+          : "HOLD";
+        const amount = orderType === "BUY" ? 5000 : 0;
+        const marketCap = 10_000_000;
+        const intent = `[AURION] ${orderType} — ${amount > 0 ? "Inject liquidity" : "Maintain position"} per agent analysis`;
+
+        // ── COMPLIANCE GATE ────────────────────────────────────────────────────
+        const gateOk = await enforceComplianceGate();
+        if (!gateOk && orderType === "BUY") {
+          // Gate refused — log blocked intent, do NOT execute
+          const snapshot = await (
+            await import("../../../../lib/compliance_gate")
+          ).getEconomicSnapshot();
+          await auditGateDecision({
+            orderType: orderType,
+            amount: 0,
+            marketCap,
+            agentLog: `[BLOCKED ${agentDecision}] Compliance gate refused — drawdown exceeds ${(MAX_DRAWDOWN * 100).toFixed(0)}% limit.`,
+            intent,
+            drawdownPct: snapshot.drawdownPct,
+            gatePassed: false,
+            executionResult: "BLOCKED",
+          });
+          logConsole("Trade BLOCKED by compliance gate.");
+        } else {
+          const { error } = await supabase!.from("aurion_ledger").insert([
+            {
+              order_type: orderType,
+              amount: amount,
+              market_cap: marketCap,
+              agent_log: `[AURION] Execution Loop: ${agentDecision}`,
+              intent,
+            },
+          ]);
+
+          if (error) throw error;
+          logConsole("Successfully logged decision to ledger.");
+
+          // ── REVENUE TRACKER — log commission on every BUY trade ──────────────
+          try {
+            await logCommission({
+              orderType:      orderType,
+              volume:         amount,
+              agentDecision:  agentDecision,
+            });
+            logConsole(`💰 Commission logged: $${(amount * 0.01).toFixed(2)} credited.`);
+          } catch (commErr: unknown) {
+            const commMsg = commErr instanceof Error ? commErr.message : String(commErr);
+            console.warn(`[AURION-COMMISSION] Failed to log: ${commMsg}`);
+          }
+        }
+      } catch (error: unknown) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error(
+          `[AURION-ERROR] Failed in mock-mode execution loop: ${errMsg}`,
+        );
+      } finally {
+        isExecuting = false;
+      }
+      return;
+    }
+
+    // ── PRODUCTION MODE ───────────────────────────────────────────────────────
+    isExecuting = true;
+    try {
       logConsole("Fetching latest 24h token velocity metrics...");
       const metrics = await fetchLiveMetrics();
 
