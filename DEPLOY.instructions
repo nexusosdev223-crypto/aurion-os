@@ -1,0 +1,5 @@
+# DEPLOY
+vercel --yes --token VERCEL_TOKEN --prod
+OR
+netlify deploy --prod
+STRIPE_LINK=https://buy.stripe.com/live_YOUR_ACTUAL_LINK
