@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send SMS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      font-family: monospace;
+      color: #eee;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    h1 { font-size: 14px; text-transform: uppercase; letter-spacing: .1em; color: #666; margin-bottom: 24px; }
+    .number { font-size: 24px; color: #4ade80; margin-bottom: 8px; }
+    .message { color: #888; margin-bottom: 24px; }
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #4ade80;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background .15s;
+    }
+    a:hover { background: #22c55e; }
+    .fallback { margin-top: 24px; padding: 12px; background: #1e293b; border-radius: 4px; font-size: 12px; color: #94a3b8; }
+    .fallback code { color: #e2e8f0; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>SMS Message</h1>
+    <div class="number">347 249 5985</div>
+    <div class="message">Message: &ldquo;hi&rdquo;</div>
+    <a id="sms-link" href="#">📱 Send via SMS App</a>
+    <div class="fallback">
+      On desktop: &ldquo;Send via SMS App&rdquo; above won&rsquo;t work directly — click it anyway, or open this file on your phone.<br><br>
+      Or paste this URI into your browser address bar:<br><br>
+      <code id="uri"></code>
+    </div>
+  </div>
+
+  <script>
+    const to = '13472495985';
+    const msg = 'hi';
+    const uri = `sms:${to}?body=${encodeURIComponent(msg)}`;
+    document.getElementById('sms-link').href = uri;
+    document.getElementById('uri').textContent = uri;
+
+    // iOS needs body= as query, Android uses ?body=
+    // Also try iOS multipart format
+    const iosUri = `sms:${to}&body=${encodeURIComponent(msg)}`;
+    document.getElementById('uri').textContent = uri + '\n\n(iOS fallback: ' + iosUri + ')';
+  </script>
+</body>
+</html>

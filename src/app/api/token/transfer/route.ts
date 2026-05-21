@@ -1,13 +1,46 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isValidSupabaseConfig } from '@/lib/supabase';
 import { enforceComplianceGate, auditGateDecision, MAX_DRAWDOWN } from '@/lib/compliance_gate';
 
 export async function POST(request: Request) {
   try {
-    const { orderType, amount, marketCap, logMessage } = await request.json();
+    const { orderType, amount, marketCap, logMessage, intentOnly, intentMessage } = await request.json();
 
-    if (!orderType || typeof amount !== 'number') {
-      return NextResponse.json({ success: false, error: 'Missing orderType or numeric amount' }, { status: 400 });
+    if (!orderType) {
+      return NextResponse.json({ success: false, error: 'Missing orderType' }, { status: 400 });
+    }
+
+    // amount is required for trade semantics; for intent-only logging we allow missing/undefined
+    if (!intentOnly && typeof amount !== 'number') {
+      return NextResponse.json({ success: false, error: 'Missing numeric amount' }, { status: 400 });
+    }
+
+    // Supabase not configured — return mock response so the UI stays functional
+    if (!isValidSupabaseConfig()) {
+      const gateOk = await enforceComplianceGate();
+      const mockTx = {
+        order_type: orderType,
+        amount: amount ?? 0,
+        market_cap: marketCap ?? 10_000_000,
+        agent_log: logMessage ?? `Mock transaction: ${orderType}`,
+        intent: `[MOCK] ${orderType}`,
+        created_at: new Date().toISOString(),
+        id: 0,
+      };
+      if (!gateOk) {
+        await auditGateDecision({
+          orderType, amount: 0, marketCap: marketCap ?? 10_000_000,
+          agentLog: `[MOCK BLOCKED] Compliance gate refused — drawdown exceeds MAX_DRAWDOWN.`,
+          intent: `[MOCK] ${orderType}`, drawdownPct: 0, gatePassed: false, executionResult: "BLOCKED", byHuman: true,
+        });
+        return NextResponse.json({ success: false, error: 'Compliance gate refused (mock mode).', transaction: mockTx }, { status: 402 });
+      }
+      await auditGateDecision({
+        orderType, amount: amount ?? 0, marketCap: marketCap ?? 10_000_000,
+        agentLog: `[MOCK] Transaction executed in mock mode.`, intent: `[MOCK] ${orderType}`,
+        drawdownPct: 0, gatePassed: true, executionResult: "EXECUTED", byHuman: true,
+      });
+      return NextResponse.json({ success: true, transaction: mockTx });
     }
 
     // ── COMPLIANCE GATE ────────────────────────────────────────────────────
@@ -32,8 +65,40 @@ export async function POST(request: Request) {
       }, { status: 402 });
     }
 
-    const { data, error } = await supabase
-      .from('aurion_ledger')
+    // Optional: operator intent-only logging (no mint/trade semantics)
+    if (intentOnly) {
+      const intent = intentMessage ? String(intentMessage) : `[MANUAL] Operator intent log`;
+
+      const { data, error } = await supabase!.from('aurion_ledger')
+        .insert([
+          {
+            order_type: orderType || 'INTENT',
+            amount: typeof amount === 'number' ? amount : 0,
+            market_cap: marketCap || 10_000_000,
+            agent_log: logMessage || `Operator intent: ${intent}`,
+            intent: intent,
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      await auditGateDecision({
+        orderType:      orderType || 'INTENT',
+        amount:         typeof amount === 'number' ? amount : 0,
+        marketCap:      marketCap || 10_000_000,
+        agentLog:       logMessage || `Operator intent: ${intent}`,
+        intent,
+        drawdownPct:    0,
+        gatePassed:     true,
+        executionResult:'EXECUTED',
+        byHuman:        true,
+      });
+
+      return NextResponse.json({ success: true, transaction: data[0] });
+    }
+
+    const { data, error } = await supabase!.from('aurion_ledger')
       .insert([
         {
           order_type: orderType,
