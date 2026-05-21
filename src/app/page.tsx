@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import LedgerView from '@/components/LedgerView';
 import TransactionConsole from '@/components/TransactionConsole';
+import CommissionBar from '@/components/CommissionBar';
 
 interface Metrics {
   circulatingSupply: number;
@@ -101,6 +102,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Revenue / Commission Tracker */}
+      <CommissionBar />
 
       {/* Primary Workspace Layout Splits */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">

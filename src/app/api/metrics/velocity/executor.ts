@@ -5,6 +5,7 @@ import {
   auditGateDecision,
   MAX_DRAWDOWN,
 } from "../../../../lib/compliance_gate";
+import { logCommission } from "../../../../lib/commissions";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🌐 VPN BOUNCE — ACTIVATED BEFORE ANY NETWORK CALL
@@ -156,6 +157,19 @@ async function runExecutionLoop() {
 
         if (error) throw error;
         logConsole("Successfully logged decision to ledger.");
+
+        // ── REVENUE TRACKER — log commission on every BUY trade ──────────────
+        try {
+          await logCommission({
+            orderType:      orderType,
+            volume:         amount,
+            agentDecision:  agentDecision,
+          });
+          logConsole(`💰 Commission logged: $${(amount * 0.01).toFixed(2)} credited.`);
+        } catch (commErr: unknown) {
+          const commMsg = commErr instanceof Error ? commErr.message : String(commErr);
+          console.warn(`[AURION-COMMISSION] Failed to log: ${commMsg}`);
+        }
       }
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
