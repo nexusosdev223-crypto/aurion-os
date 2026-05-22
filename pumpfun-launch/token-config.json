@@ -1,0 +1,11 @@
+{
+  "name": "DogeInu",
+  "symbol": "DOGINU",
+  "supply": "1000000000",
+  "description": "Doge just went to the moon — join the movement.",
+  "launch_time": "08:00",
+  "community_goals": {
+    "telegram_members": 50,
+    "twitter_followers": 100
+  }
+}

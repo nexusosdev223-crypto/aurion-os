@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 // ── Counters that simulate live community data ──────────────────────────────
 function useGmftCounter() {
@@ -9,11 +9,11 @@ function useGmftCounter() {
   const [holders, setHolders]   = useState(1_212);
   const [buys, setBuys]         = useState(8_431);
   const [txs, setTxs]           = useState(12_847);
-  const startedAt               = useRef(Date.now());
+  const startedAt               = useState(() => Date.now())[0];
 
   useEffect(() => {
     const tick = () => {
-      const elapsed = Math.floor((Date.now() - startedAt.current) / 1_000);
+      const elapsed = Math.floor((Date.now() - startedAt) / 1_000);
       // holders grow roughly 1 every 2 minutes of real-time
       setHolders((h) => h + Math.floor(elapsed / 120));
       // buys grow faster
@@ -23,6 +23,8 @@ function useGmftCounter() {
     };
     const id = setInterval(tick, 5_000);
     return () => clearInterval(id);
+    // startedAt is set once on mount — adding it would reset the counter on re-registration
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { holders, buys, txs };

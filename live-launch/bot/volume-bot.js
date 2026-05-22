@@ -36,7 +36,7 @@ const {
 
 const {
   PUMP_SDK,
-  PUMP_PROGRAM_ID as PUMP_PID,
+  PUMP_PROGRAM_ID: PUMP_PID,
   bondingCurvePda,
   getBuyTokenAmountFromSolAmount,
   getSellSolAmountFromTokenAmount,
@@ -473,8 +473,8 @@ async function printStatus() {
   const tok = await gmftBalance();
   const [globalVal, curveVal] = await Promise.all([fetchGlobal(), fetchBondingCurve()]);
   ok(`─ Wallet: ${wallet.publicKey.toString()}`);
-  log(`  SOL:        ${solStr(sol)}  (${sol} l);
-  log(`  GMFT:       ${tok.toString()} raw`);
+  log(`  SOL:        ${solStr(sol)}  (${sol} lamps)  (${sol.toFixed(6)} SOL)\n` +
+      `  GMFT:       ${tok.toString()} raw`);
 
   if (globalVal) {
     log(`  BC virtual SOL:    ${globalVal.virtualSolReserves.toString()}`);

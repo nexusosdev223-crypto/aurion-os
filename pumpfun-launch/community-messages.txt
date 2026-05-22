@@ -1,0 +1,11 @@
+TELEGRAM STARTUP MESSAGES:
+
+1. "Welcome! $TOKEN is fair-launch, renounced, locked LP 🔒"
+
+2. "Why $TOKEN? Simple: community-owned, no whales, pure memecoin"
+
+3. "Chart looks healthy ✅ Liquidity locked ✅ Renounced ✅"
+
+4. "Next milestone: 100 Telegram members. Who's bringing 3 friends?"
+
+5. "Airdrop announcement: First 100 holders get bonus!"

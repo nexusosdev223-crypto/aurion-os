@@ -1,9 +1,16 @@
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const SERVICE_ROLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtcXhyc3BvcGR2ZXdnY3l2c2RuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODk2OTc5MCwiZXhwIjoyMDk1NDQ1NzkwfQ.uL3e7zkNwjfDpoTr0XQf-XkK8i3l7kK-kfDQkaSS90g';
+import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+
+// Load service role from environment (do NOT hardcode secrets)
+const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SERVICE_ROLE) {
+  console.error('SUPABASE_SERVICE_ROLE_KEY env var is required.');
+  process.exit(1);
+}
 
 function runFile(label, sqlFile) {
   const sql = fs.readFileSync(sqlFile, 'utf8');
+  console.log(`\n── ${label} (${sqlFile}) ──────────────────────────────`);
   console.log(`\n── ${label} (${sqlFile}) ──────────────────────────────`);
   return (
     admin.rpc('run_sql', { sql })

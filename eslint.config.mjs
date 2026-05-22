@@ -12,7 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Kilo-internal worktree metadata overlay:
+    ".kilo/**",
   ]),
+  // Node.js service scripts (CommonJS) — disable rules that don't apply
+  {
+    files: ["live-launch/bot/**/*.js", "scripts/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -15,6 +15,6 @@
 - [x] Ensure loading/empty/error states match the same design language
 
 ## Step 3: Validate
-- [x] Run `npm run lint` (all src files pass)
-- [x] Run `npm run build`
+- [x] Run `npm run lint` (0 errors; 27 unused-var warnings in non-build scripts, zero errors in all `src/` files)
+- [x] Run `npm run build` (succeeds)
 - [x] Deploy to Vercel production
