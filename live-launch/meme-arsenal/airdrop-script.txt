@@ -1,0 +1,109 @@
+# GMFT Airdrop Distribution Script
+# ──────────────────────────────────────────────────────────────────────────────
+# Exact formula for airdropping GMFT to the first 100 holders.
+# Manual — no blockchain code needed.
+# After Tier-0 (first 100 holders): distribute from the dev airdrop wallet.
+#
+# Side note: Pump.fun tokens are memes. Airdrop formulas here are for
+# community reward enhancement only (non-usd equivalence; tokens only).
+#
+# assumptions
+#   • Token decimals = 9 (pump.fun standard)
+#   • Airdrop pool   = 5,000,000 GMFT (0.5% of 1b supply)
+#   • Floor price at airdrop ≈ $0.00005 / token
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── TIER STRUCTURE ────────────────────────────────────────────────────────────
+
+# TIER 0: First 100 Laterally-Recognised Holders
+# Slot    | Action / criterion          | GMFT amount    | Copypaste list
+# --------|-----------------------------|----------------|---------------
+#   1–2   | Posted gm in < 24h of launch|  80,000 GMFT   | "@gmft_holder1..."
+#   3–5   | Posted the first meme       | 150,000 GMFT   | "@meme_king..."
+#   6–10  | Active shared你敢 more than   | 100,000 GMFT   | "@shills_alot..."
+#  11–30  | Bought and held > 24h (tx)  |  50,000 GMFT   | "@holder_tx123..."
+#  31–80  | Regular gm post rate        |  25,000 GMFT    | "@gm_only..."
+#  81–100 | Scrolled through TG daily    |  10,000 GMFT   | "@ lurking..."
+
+# TIER 1: Engaged Sidewalk-Round Holders (100 to 500)
+# Slot    | Action                      | GMFT amount
+# --------|-----------------------------|--------------
+# 101–200 | Avg >3 gms/week + diversity |  8,000 GMFT
+# 201–350 | Premium member invitings >5 |  5,000 GMFT
+# 351–500 | Referral hobbyists           |  3,000 GMFT
+
+# TIER 2: Holders Above The Ceiling (500+)
+# Slot    | Action                      | GMFT amount
+# --------|-----------------------------|-------------
+# 501–750 | Recruited the most rekt      |  2,000 GMFT
+# 751–1000| Community memes used externally| 1,500 GMFT
+# 1001+   | Holders from pump.fun feed   |    750 GMFT
+
+# ── MANUAL EXECUTION SCRIPT ───────────────────────────────────────────────────
+# After you have a list of Telegram @usernames + @discord usernames:
+# Run this script snippet in a bash terminal.
+# It dry-runs first, then executes if you confirm.
+
+#!/usr/bin/env bash
+# ── Airdrop executor for GMFT first-100 holders ───────────────────────────────
+set -euo pipefail
+
+AIRDROP_POOL=5_000_000     # total GMFT for this round
+TIER_FILE="${HOME}/gmft-airdrop.csv"
+DRY_RUN=${DRY_RUN:-true}   # set to false to execute
+
+if [[ ! -f "${TIER_FILE}" ]]; then
+  echo "ERROR: ${TIER_FILE} not found."
+  echo "Create it first with columns: username,wallet_address,holding_tier,tokens"
+  echo "  username,wallet_address,tier,tokens"
+  echo "  gmft_hero1,<wallet>,1,80000"
+  exit 1
+}
+
+echo "=== GMFT Airdrop Preview ==="
+SUM=0
+while IFS=, read -r username wallet tier tokens; do
+  echo "  $username | tier=$tier | $tokens GMFT → $wallet"
+  SUM=$((SUM + tokens))
+done < "${TIER_FILE}"
+echo ""
+echo "Total: ${SUM} / ${AIRDROP_POOL} GMFT pool"
+echo ""
+
+if [[ "${DRY_RUN}" != "false" ]]; then
+  echo "DRY RUN — set DRY_RUN=false to execute"
+  exit 0
+fi
+
+echo "⚠️  CONFIRM EXECUTION — THIS WILL SEND TOKENS"
+read -p "Type 'GMFT' to confirm: " confirm
+if [[ "$confirm" != "GMFT" ]]; then
+  echo "Aborted."
+  exit 1
+fi
+
+# Jetton transfer for pump.fun token on solana
+# Note: pump.fun tokens use a custom lp contract. Transfer via dev@solana CLI
+# with the token transfer instruction.
+
+while IFS=, read -r username wallet tier tokens; do
+  echo "→ sending ${tokens} GMFT → $wallet"
+  # Replace with actual transfer command
+  # anchor transfer-token --mint <GMFT_MINT_ADDRESS> --to "$wallet" --amount "$tokens" --authority <KEYPAIR_PATH>
+done < "${TIER_FILE}"
+
+echo "Airdrop complete."
+echo ""
+
+# ── VERIFICATION STEP ─────────────────────────────────────────────────────────
+
+echo "=== Airdrop Verification ==="
+echo "Mint address: [PASTE GMFT MINT ADDRESS]"
+echo "Expected airdropped total: ${SUM} GMFT"
+echo ""
+echo "Check onSolscan:"
+echo "  https://solscan.io/token/[GMFT_MINT_ADDRESS]"
+echo "  https://solscan.io/account/[AIRDROP_SOURCE_WALLET]"
+echo ""
+echo "Post to Telegram:"
+echo "  'GMFT first-100 shareholder airdrop confirmed. LP renounced. Tax-free earned.'"

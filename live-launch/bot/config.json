@@ -1,0 +1,49 @@
+{
+  "minVersion": "1.36.0",
+  "description": "GMFT Auto-Volume Bot — buys and sells on random timing to generate GMFT pump.fun volume",
+  "token": {
+    "mint": "",
+    "name": "GMFT",
+    "note": "FILL THIS IN after GMFT is deployed on pump.fun"
+  },
+  "wallet": {
+    "keypairPath": "~/.config/solana/id.json",
+    "rpcUrl": "https://api.mainnet-beta.solana.com",
+    "rpcUrlFallback": "https://solana-api.projectserum.com",
+    "commitment": "confirmed",
+    "signAllTransactions": true
+  },
+  "trading": {
+    "mode": "random",
+    "minSolBuy": "0.001",
+    "maxSolBuy": "0.005",
+    "minSolSell": "0.001",
+    "maxSolSell": "0.005",
+    "buyWeight": 0.65,
+    "slippageBps": 100,
+    "randomizeAmounts": true,
+    "minIntervalBuySec": 300,
+    "maxIntervalBuySec": 900,
+    "minIntervalSellSec": 240,
+    "maxIntervalSellSec": 840
+  },
+  "safety": {
+    "maxSolPerDay": "0.1",
+    "maxSolPerHour": "0.02",
+    "maxAggressiveSize": "0.01",
+    "emergencyStopLossPercent": 50,
+    "minReserveSol": "0.002",
+    "logRatePerMinute": 5,
+    "stopAtLowMcapThreshold_usd": 1000,
+    "logAllTxns": true
+  },
+  "burnOrders": {
+    "buyFirst": false,
+    "sellFirst": false
+  },
+  "features": {
+    "claimCashback": true,
+    "extendAccount": false,
+    "reallocateAccountIfFull": true
+  }
+}

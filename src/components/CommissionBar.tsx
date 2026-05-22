@@ -12,8 +12,11 @@ interface CommissionSummary {
 
 export default function CommissionBar() {
   const [revenue, setRevenue] = useState<CommissionSummary>({
-    success: false, totalRevenueUsd: 0,
-    commissionRate: 0.01, tradeCount: 0, avgCommissionPerTrade: 0,
+    success: false,
+    totalRevenueUsd: 0,
+    commissionRate: 0.01,
+    tradeCount: 0,
+    avgCommissionPerTrade: 0,
   });
 
   useEffect(() => {
@@ -22,39 +25,69 @@ export default function CommissionBar() {
         const res = await fetch('/api/commissions');
         const data = await res.json();
         if (data.success) setRevenue(data);
-      } catch { /* keep last value */ }
+      } catch {
+        /* keep last */
+      }
     };
     fetchRevenue();
-    const id = setInterval(fetchRevenue, 60000);
+    const id = setInterval(fetchRevenue, 60_000);
     return () => clearInterval(id);
   }, []);
 
   return (
-    <div className="border border-emerald-900/60 bg-emerald-950/30 rounded-lg p-4 mb-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="relative overflow-hidden rounded-xl border border-emerald-900/25 bg-gradient-to-r from-emerald-950/40 via-emerald-950/15 to-transparent mb-6">
+      {/* Inner glow accent line */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/25 to-transparent" />
+      <div className="relative px-5 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left — Revenue highlight */}
         <div>
-          <p className="text-[10px] text-emerald-600 uppercase tracking-widest mb-1">Revenue Operations</p>
-          <p className="text-3xl font-black text-emerald-400">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-emerald-600 font-bold mb-1.5">
+            Revenue Operations
+          </p>
+          <p className="text-[2rem] font-bold font-mono text-emerald-400 leading-none tracking-tight">
             ${revenue.totalRevenueUsd.toFixed(2)}
-            <span className="text-xs font-normal text-emerald-700 ml-2">USD realised</span>
+            <span className="text-xs font-normal text-emerald-700 ml-2.5">USD realised</span>
           </p>
         </div>
 
-        <div className="flex gap-6 text-xs">
-          <div className="text-center">
-            <p className="text-neutral-500 uppercase tracking-widest mb-1">Commission Rate</p>
-            <p className="text-emerald-400 font-bold text-lg">{(revenue.commissionRate * 100).toFixed(0)}%</p>
-          </div>
-          <div className="text-center">
-            <p className="text-neutral-500 uppercase tracking-widest mb-1">Simulated Trades</p>
-            <p className="text-amber-400 font-bold text-lg">{revenue.tradeCount}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-neutral-500 uppercase tracking-widest mb-1">Avg / Trade</p>
-            <p className="text-blue-400 font-bold text-lg">${revenue.avgCommissionPerTrade.toFixed(2)}</p>
-          </div>
+        {/* Right — KPI pills */}
+        <div className="flex items-center gap-5 sm:gap-7">
+          <Kpi
+            label="Commission Rate"
+            value={`${(revenue.commissionRate * 100).toFixed(0)}%`}
+            colour="text-emerald-400"
+          />
+          <Kpi
+            label="Simulated Trades"
+            value={revenue.tradeCount.toString()}
+            colour="text-amber-400"
+          />
+          <Kpi
+            label="Avg / Trade"
+            value={`$${revenue.avgCommissionPerTrade.toFixed(2)}`}
+            colour="text-blue-400"
+          />
         </div>
       </div>
+    </div>
+  );
+}
+
+function Kpi({
+  label,
+  value,
+  colour,
+}: {
+  label: string;
+  value: string;
+  colour: string;
+}) {
+  return (
+    <div className="text-right sm:text-center min-w-[72px]">
+      <p className="text-[9px] uppercase tracking-[0.2em] text-surface-500 mb-1">
+        {label}
+      </p>
+      <p className={`text-xl font-mono font-bold leading-tight ${colour}`}>{value}</p>
     </div>
   );
 }

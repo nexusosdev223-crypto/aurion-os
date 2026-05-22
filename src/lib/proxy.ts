@@ -28,6 +28,8 @@
  *   globalThis.fetch patch installed by bootProxyLayer() catches everything.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+
 // ── NO_PROXY ─────────────────────────────────────────────────────────────────
 function shouldBypass(host: string): boolean {
   const noProxy = (process.env.NO_PROXY || "localhost,127.0.0.1,::1,.local").split(",").map(s => s.trim()).filter(Boolean);
@@ -99,7 +101,6 @@ const origFetch = (globalThis as any).fetch;
  *   fetch(request)
  *   fetch(request, init)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function patchedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const agent = getProxyAgentForUrl(input instanceof URL ? input.toString() : String(input));
   return (origFetch ?? fetch)(input, { ...(init ?? {}), agent } as any);
@@ -140,7 +141,6 @@ export function bootProxyLayer(): void {
 }
 
 // ── CONNECTIVITY TEST ──────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function testProxyConnectivity(target: string = "https://httpbin.org/ip"): Promise<{ ok: boolean; ip?: string; error?: string }> {
   try {
     const resp = await proxiedFetch(target, { signal: (AbortSignal as any)?.timeout?.(5000) ?? (undefined as any) });

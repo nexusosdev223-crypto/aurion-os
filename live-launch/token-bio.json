@@ -1,0 +1,64 @@
+{
+  "token": {
+    "name": "GMFT",
+    "full_name": "Good Mother F***ing Time",
+    "symbol": "GMFT",
+    "decimals": 6,
+    "supply": 1000000000,
+    "initial_market_cap_target_usd": 50000,
+    "launch_platform": "pump.fun"
+  },
+  "brand": {
+    "tagline": "Anti-NGMI Deegen Mood Token",
+    "mood": "confident-degen",
+    "primary_color": "#22c55e",
+    "secondary_color": "#000000",
+    "accent_color": "#4ade80",
+    "font_style": "bold-meme",
+    "tone": [
+      "unapologetically confident",
+      "degenerate-positive",
+      "anti-cope",
+      "outcome-focused",
+      "meme-aware",
+      "pump-acceleration"
+    ]
+  },
+  "target_audience": [
+    "overworked-solana-degens",
+    "pump-genre-token-hunters",
+    "swing-traders-turned-meme-bros",
+    "anti-NGMI-influenced-masses",
+    "crypto-narrator-marginalized",
+    "tiicket-trader-culture"
+  ],
+  "anti_personas": [
+    "basic-swing-breakout-speculators",
+    "NGMI-copium-smokers",
+    "crypto-traditionalists",
+    "AI-token-bubble-hunters"
+  ],
+  "social": {
+    "telegram": "https://t.me/GMFTGang",
+    "twitter": "https://x.com/GoodMotFckinTime",
+    "discord": "https://discord.gg/GMFT",
+    "website": "https://gmft.gg"
+  },
+  "contract": {
+    "address": "DEPLOY_AT_LAUNCH",
+    "lp_address": "LOCK_AT_LAUNCH",
+    "tax_buy_pct": 0,
+    "tax_sell_pct": 0,
+    "lp_renounced": false,
+    "lp_verified": false,
+    "mint_authority_revoked": false
+  },
+  "milestones": {
+    "launch": "D-DAY",
+    "100_holders": "D+1",
+    "1000_holders": "D+3",
+    "5000_holders": "D+7",
+    "pump_fun_trending": "D+4",
+    "cex_sniper": "D+14"
+  }
+}

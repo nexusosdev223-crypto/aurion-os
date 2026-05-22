@@ -11,6 +11,26 @@ interface LedgerEntry {
   created_at: string;
 }
 
+/* ── Order-type badge ────────────────────────────────────────────────────────── */
+function OrderTypeBadge({ type }: { type: string }) {
+  if (type === "INTENT") return <span className="text-surface-500 font-mono text-[11px]">INTENT</span>;
+  const isBuy = type === "BUY";
+  const isSell = type === "SELL";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider ${
+        isBuy
+          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+          : isSell
+              ? "bg-red-500/10 text-red-400 border border-red-500/20"
+              : "bg-surface-800 text-surface-400 border border-surface-700"
+      }`}
+    >
+      {type}
+    </span>
+  );
+}
+
 export default function LedgerView() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,40 +52,89 @@ export default function LedgerView() {
     fetchLedger();
   }, []);
 
-  if (loading) return <div className="p-6 text-zinc-400 animate-pulse">Syncing with aurion_ledger...</div>;
-  if (error) return <div className="p-6 text-red-400 bg-red-950/20 border border-red-900 rounded-lg">Error: {error}</div>;
+  if (loading)
+    return (
+      <div className="space-y-2 animate-pulse p-2" role="status" aria-label="Loading ledger">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-11 rounded-xl bg-surface-800/40" />
+        ))}
+        <p className="sr-only">Loading ledger entries…</p>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 p-8 text-center rounded-xl border border-red-900/30 bg-red-950/10">
+        <svg className="h-7 w-7 text-red-500/50" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <p className="text-sm font-semibold text-red-400">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-[11px] text-surface-400 underline underline-offset-2 hover:text-surface-200 transition-colors"
+        >
+          Reload page
+        </button>
+      </div>
+    );
+
+  if (ledger.length === 0)
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center" aria-label="Ledger is empty">
+        <div className="p-3.5 rounded-2xl bg-surface-900 border border-surface-800/60">
+          <svg className="h-7 w-7 text-surface-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.3} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-surface-300">Ledger empty</p>
+          <p className="text-[11px] text-surface-500 mt-0.5 max-w-xs">
+            Transactions will appear here as they are recorded on the blockchain.
+          </p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">AURION OS Ledger</h1>
-          <p className="text-sm text-zinc-400">Real-time multi-agent transaction history & metrics</p>
+      <div className="min-w-[640px]">
+        {/* Column headers — same column widths as rows below */}
+        <div className="hidden sm:grid grid-cols-[96px_1fr_88px_72px_1fr] gap-2 px-4 py-2 mb-0.5 text-[9px] uppercase tracking-[0.18em] text-surface-500/70 border-b border-surface-800/50 font-semibold">
+          <span>Time</span>
+          <span>Type</span>
+          <span className="text-right">Market Cap</span>
+          <span className="text-right">Velocity</span>
+          <span className="truncate">Agent Log</span>
         </div>
-        <div className="px-3 py-1 bg-emerald-950/50 border border-emerald-800 text-emerald-400 text-xs font-mono rounded-full animate-pulse">
-          Engine Live
-        </div>
-      </div>
 
-      <div className="overflow-x-auto border border-zinc-800 rounded-lg bg-zinc-950">
-        <table className="w-full text-left text-sm font-mono">
-          <tbody className="divide-y divide-zinc-850 text-zinc-300">
-            {ledger.length === 0 ? (
-              <tr><td className="p-8 text-center text-zinc-500">No records found.</td></tr>
-            ) : (
-              ledger.map((entry) => (
-                <tr key={entry.id} className="hover:bg-zinc-900/50">
-                  <td className="p-4 text-zinc-500 text-xs">{new Date(entry.created_at).toLocaleTimeString()}</td>
-                  <td className="p-4">{entry.order_type}</td>
-                  <td className="p-4">${Number(entry.market_cap).toLocaleString()}</td>
-                  <td className="p-4 text-amber-400">{entry.token_velocity}x</td>
-                  <td className="p-4 text-zinc-400 text-xs truncate max-w-md">{entry.agent_log}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="divide-y divide-surface-800/30">
+          {ledger.map((entry) => (
+            <div
+              key={entry.id}
+              className="grid grid-cols-[96px_1fr_88px_72px_1fr] gap-2 px-4 py-2.5 items-center hover:bg-surface-800/25 transition-colors group"
+            >
+              <span className="text-[11px] text-surface-500 font-mono leading-snug">
+                {new Date(entry.created_at).toLocaleTimeString()}
+              </span>
+              <div>
+                <OrderTypeBadge type={entry.order_type} />
+              </div>
+              <span className="text-[11px] text-surface-300 font-mono text-right leading-snug">
+                ${Number(entry.market_cap).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </span>
+              <span className="text-[11px] text-amber-400/80 font-mono text-right leading-snug">
+                {typeof entry.token_velocity === "number"
+                  ? entry.token_velocity.toFixed(4)
+                  : "n/a"}
+              </span>
+              <span
+                className="text-[11px] text-surface-500 truncate leading-snug group-hover:text-surface-400 transition-colors"
+                title={entry.agent_log}
+              >
+                {entry.agent_log}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
   );
 }
