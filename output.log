@@ -1,0 +1,28 @@
+🚀 Initializing Agent Wallet: 9Htu8hAZMsotTo5cJ4TSFbUJZVSMFjKrcLt18Y1c5fap
+💰 Requesting Airdrop...
+Server responded with 429 Too Many Requests.  Retrying after 500ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 1000ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 2000ms delay...
+Server responded with 429 Too Many Requests.  Retrying after 4000ms delay...
+⚠️ Airdrop failed, attempting deploy anyway...
+⚡ Attempting Transaction...
+/home/nexusosdev223/aurion-os/node_modules/@solana/web3.js/lib/index.cjs.js:8208
+      throw new SendTransactionError({
+            ^
+
+SendTransactionError: Simulation failed. 
+Message: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.. 
+Logs: 
+[]. 
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+    at Connection.sendEncodedTransaction (/home/nexusosdev223/aurion-os/node_modules/@solana/web3.js/lib/index.cjs.js:8208:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Connection.sendRawTransaction (/home/nexusosdev223/aurion-os/node_modules/@solana/web3.js/lib/index.cjs.js:8173:20)
+    at async Connection.sendTransaction (/home/nexusosdev223/aurion-os/node_modules/@solana/web3.js/lib/index.cjs.js:8164:12)
+    at async executeLaunch (file:///home/nexusosdev223/aurion-os/deploy-executor.mjs:20:23) {
+  signature: '',
+  transactionMessage: 'Transaction simulation failed: Attempt to debit an account but found no record of a prior credit.',
+  transactionLogs: []
+}
+
+Node.js v20.20.2

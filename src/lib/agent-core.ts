@@ -1,0 +1,1 @@
+import { supabase } from '../app/supabase'; export async function logAgentAction(agentId, action, payload) { const { data, error } = await supabase.from('agent_logs').insert([{ agent_id: agentId, action: action, memory_payload: payload }]); if (error) console.error('Agent Log Error:', error); return data; }

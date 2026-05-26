@@ -1,0 +1,1 @@
+import { Connection, clusterApiUrl, Keypair } from '@solana/web3.js'; export const solanaConnection = new Connection(clusterApiUrl('mainnet-beta'), 'confirmed'); export function generateAgentWallet() { const keypair = Keypair.generate(); return { publicKey: keypair.publicKey.toString(), secretKey: Array.from(keypair.secretKey) }; }

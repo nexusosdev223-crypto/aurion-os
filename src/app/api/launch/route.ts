@@ -1,0 +1,1 @@
+import { NextResponse } from 'next/server'; import { initializeLaunchAgent } from '../../../lib/launch-agent'; export async function POST() { try { const result = await initializeLaunchAgent(); return NextResponse.json({ success: true, data: result }); } catch (error) { return NextResponse.json({ success: false, error: String(error) }, { status: 500 }); } }
